@@ -204,7 +204,7 @@ rtRouted_PrintClientInfo(rtConnectedClient* clnt)
 static rtError
 rtRouted_ReadTextFile(char const* fname, char** content)
 {
-  FILE* pf;
+  FILE* pf = NULL;
   rtError err = RT_OK;
   size_t sz;
   *content = NULL;
@@ -216,15 +216,23 @@ rtRouted_ReadTextFile(char const* fname, char** content)
     sz = (size_t)ftell(pf);
     rewind(pf);
     *content = rt_malloc(sz+1);
-    if(fread(*content, 1, sz, pf) != sz)
-    {
-      free(*content);
-      *content = NULL;
-      rtLog_Error("failed to read file %s. %s", fname, strerror(errno));
+    if(*content == NULL) {
+      fclose(pf);
+      rtLog_Error("failed to allocate memory for file %s", fname);
       err = RT_FAIL;
+    } else {
+      if(fread(*content, 1, sz, pf) != sz)
+      {
+        free(*content);
+        *content = NULL;
+        fclose(pf);
+        rtLog_Error("failed to read file %s. %s", fname, strerror(errno));
+        err = RT_FAIL;
+      } else {
+        (*content)[sz] = 0;
+        fclose(pf);
+      }
     }
-    (*content)[sz] = 0;
-    fclose(pf);
   }
   else
   {
