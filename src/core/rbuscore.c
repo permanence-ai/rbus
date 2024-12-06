@@ -2583,7 +2583,6 @@ static void _rbuscore_directconnection_load_from_cache()
             goto invalidFile;
         }
 
-        //
         rbusMessage msg = NULL;
         rbusMessage_FromBytes(&msg, pBuff, size);
         int numOfEntries = 0;
@@ -2603,6 +2602,8 @@ static void _rbuscore_directconnection_load_from_cache()
             //TODO
             /* Add it to vector and when add_element is called, start a listener */
             //if the PID is running and if the closeDirect was not called yet, means the consumer is still waiting..
+
+            rbusMessage_Release(tmpMsg);
         }
         rbusMessage_Release(msg);
     }
