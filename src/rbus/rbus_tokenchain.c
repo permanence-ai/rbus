@@ -254,7 +254,7 @@ bool TokenChain_match(TokenChain* chain, elementNode* instNode)
         return false;
     Token* token = chain->last;
     elementNode* inst = instNode;
-    int rc;
+    int rc = 0;
 
 #   if DEBUG_TOKEN
     RBUSLOG_INFO("%s DEBUG: instNode=%s tokenChain=", __FUNCTION__, instNode->fullName);
