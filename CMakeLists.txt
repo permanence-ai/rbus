@@ -132,6 +132,27 @@ if (BUILD_FOR_DESKTOP)
   find_package(msgpack REQUIRED) 
   
 
+  ExternalProject_Add(
+    safeclib
+    GIT_REPOSITORY https://github.com/rurban/safeclib.git
+    GIT_TAG v3.8.1
+    PREFIX deps
+    UPDATE_DISCONNECTED 1
+    INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}
+    BUILD_IN_SOURCE 1
+    CONFIGURE_COMMAND <SOURCE_DIR>/build-aux/autogen.sh && <SOURCE_DIR>/configure --prefix=${CMAKE_INSTALL_PREFIX})
+
+  set(SAFEC_LIBRARIES "-lsafec")
+
+  include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/deps/src/safeclib/include)
+  link_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/deps/src/safeclib/src/.libs
+    ${CMAKE_BINARY_DIR}
+    ${LIBRARY_DIR})
+
 else()
   find_package(cJSON REQUIRED)
   IF (NOT BUILD_ONLY_RTMESSAGE)
