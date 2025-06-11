@@ -1,5 +1,6 @@
 #define _GNU_SOURCE 1
 #include "rtMessage.h"
+#include "safec_lib.h"
 #include "rtTime.h"
 #include "rtDebug.h"
 #include "rtLog.h"
@@ -520,7 +521,8 @@ rtRouteDirect_SendMessage(const rtPrivateClientInfo* pClient, uint8_t const* pIn
         else
             new_header.control_data = pClient->clientID;
 
-        strncpy(new_header.topic, pClient->clientTopic, RTMSG_HEADER_MAX_TOPIC_LENGTH-1);
+        int rc = strncpy_s(new_header.topic, RTMSG_HEADER_MAX_TOPIC_LENGTH, pClient->clientTopic, RTMSG_HEADER_MAX_TOPIC_LENGTH-1);
+        ERR_CHK(rc);
         new_header.topic_length = strlen(pClient->clientTopic);
         new_header.reply_topic[0] = '\0';
         new_header.reply_topic_length = 0;
