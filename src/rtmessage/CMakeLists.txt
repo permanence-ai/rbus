@@ -17,6 +17,8 @@
 # limitations under the License.
 ##########################################################################
 
+include_directories(${PROJECT_SOURCE_DIR}/include)  # safe clib
+
 set(OPENSSL_REQUIRED FALSE)
 
 if (WITH_SPAKE2)
