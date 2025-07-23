@@ -19,6 +19,7 @@
 ##########################################################################
 */
 #include "rtMessage.h"
+#include "safec_lib.h"
 #include "rtTime.h"
 #include "rtCipher.h"
 #include "rtDebug.h"
@@ -721,8 +722,10 @@ static void prep_reply_header_from_request(rtMessageHeader *reply, const rtMessa
   reply->sequence_number = request->sequence_number;
   reply->flags = rtMessageFlags_Response;
 
-  strncpy(reply->topic, request->reply_topic, RTMSG_HEADER_MAX_TOPIC_LENGTH-1);
-  strncpy(reply->reply_topic, request->topic, RTMSG_HEADER_MAX_TOPIC_LENGTH-1);
+  errno_t rc = strncpy_s(reply->topic, RTMSG_HEADER_MAX_TOPIC_LENGTH, request->reply_topic, RTMSG_HEADER_MAX_TOPIC_LENGTH-1);
+  ERR_CHK(rc);
+  rc = strncpy_s(reply->reply_topic, RTMSG_HEADER_MAX_TOPIC_LENGTH, request->topic, RTMSG_HEADER_MAX_TOPIC_LENGTH-1);
+  ERR_CHK(rc);
   reply->topic_length = request->reply_topic_length;
   reply->reply_topic_length = request->topic_length;
 #ifdef MSG_ROUNDTRIP_TIME
