@@ -302,7 +302,8 @@ int client_subscription_compare(const void* left, const void* right)
 void client_subscription_create(client_subscription_t* sub, const char * object_name)
 {
     (*sub) = rt_malloc(sizeof(struct _client_subscription));
-    strcpy((*sub)->object, object_name);
+    strncpy((*sub)->object, object_name, sizeof((*sub)->object) - 1);
+    (*sub)->object[sizeof((*sub)->object) - 1] = '\0';
     rtVector_Create(&(*sub)->events); 
 }
 
