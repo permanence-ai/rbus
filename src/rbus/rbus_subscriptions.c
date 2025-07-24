@@ -499,13 +499,14 @@ static void rbusSubscriptions_loadCache(rbusSubscriptions_t subscriptions)
         if(rbusBuffer_ReadUInt16(buff, &length) < 0) goto remove_bad_file;
         if(type != RBUS_STRING || length >= RBUS_MAX_NAME_LENGTH) goto remove_bad_file;
 
-        sub->listener = rt_try_malloc(length);
+        sub->listener = rt_try_malloc(length + 1); 
         if(!sub->listener)
         {
-            RBUSLOG_ERROR("failed to malloc %d bytes for listener", length);
+            RBUSLOG_ERROR("failed to malloc %d bytes for listener", length + 1);
             goto remove_bad_file;
         }
         memcpy(sub->listener, buff->data + buff->posRead, length);
+        sub->listener[length] = '\0'; 
         buff->posRead += length;
 
         //read eventName
@@ -513,13 +514,14 @@ static void rbusSubscriptions_loadCache(rbusSubscriptions_t subscriptions)
         if(rbusBuffer_ReadUInt16(buff, &length) < 0) goto remove_bad_file;
         if(type != RBUS_STRING || length >= RBUS_MAX_NAME_LENGTH) goto remove_bad_file;
 
-        sub->eventName = rt_try_malloc(length);
+        sub->eventName = rt_try_malloc(length + 1); 
         if(!sub->eventName)
         {
-            RBUSLOG_ERROR("failed to malloc %d bytes for eventName", length);
+            RBUSLOG_ERROR("failed to malloc %d bytes for eventName", length + 1);
             goto remove_bad_file;
         }
         memcpy(sub->eventName, buff->data + buff->posRead, length);
+        sub->eventName[length] = '\0'; 
         buff->posRead += length;
 
         //read componentId
