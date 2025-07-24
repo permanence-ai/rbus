@@ -17,6 +17,7 @@
  * limitations under the License.
 */
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -3176,7 +3177,9 @@ rbusError_t rbus_close(rbusHandle_t handle)
     LockMutex();
     char filename[RTMSG_HEADER_MAX_TOPIC_LENGTH];
     snprintf(filename, RTMSG_HEADER_MAX_TOPIC_LENGTH-1, "%s%d_%d", "/tmp/.rbus/", getpid(), handleInfo->componentId);
-    remove(filename);
+    if (remove(filename) != 0) {
+        RBUSLOG_ERROR("Error removing file: %s (errno: %d)", filename, errno);
+    }
 
     HANDLE_EVENTSUBS_MUTEX_LOCK(handle);
     if(handleInfo->eventSubs)
