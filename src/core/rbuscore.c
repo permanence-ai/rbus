@@ -2811,7 +2811,7 @@ rbusCoreError_t rbuscore_startPrivateListener(const char* pPrivateConnAddress, c
     rbusServerDMLList_t *obj = NULL;
     int err = 0;
     pthread_t pid;
-    rtPrivateClientInfo  privConsInfo;
+    rtPrivateClientInfo privConsInfo = {0};
 
     if (pDMLName && pPrivateConnAddress && handler)
     {
