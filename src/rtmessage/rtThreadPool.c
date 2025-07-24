@@ -192,14 +192,46 @@ rtError rtThreadPool_Create(rtThreadPool* ppool, size_t maxThreadCount, size_t s
   pool->isRunning = 1;
   pool->isShutdown = 0;
   pthread_mutexattr_t mutAttr;
-  pthread_mutexattr_init(&mutAttr);
+  int mutex_init_result = pthread_mutexattr_init(&mutAttr);
+  if (mutex_init_result != 0) {
+    rtLog_Error("Failed to initialize mutex attribute");
+    rt_free(pool);
+    return rtErrorFromErrno(mutex_init_result);
+  }
   pthread_mutexattr_settype(&mutAttr, PTHREAD_MUTEX_NORMAL);
-  pthread_mutex_init(&pool->poolLock, &mutAttr);
+  int mutex_init_result2 = pthread_mutex_init(&pool->poolLock, &mutAttr);
+  if (mutex_init_result2 != 0) {
+    rtLog_Error("Failed to initialize mutex");
+    pthread_mutexattr_destroy(&mutAttr);
+    rt_free(pool);
+    return rtErrorFromErrno(mutex_init_result2);
+  }
   pthread_mutexattr_destroy(&mutAttr);
   pthread_condattr_t condAttr;
-  pthread_condattr_init(&condAttr);
-  pthread_cond_init(&pool->taskCond, &condAttr);
-  pthread_cond_init(&pool->idleCond, &condAttr);
+  int cond_init_result = pthread_condattr_init(&condAttr);
+  if (cond_init_result != 0) {
+    rtLog_Error("Failed to initialize condition attribute");
+    pthread_mutex_destroy(&pool->poolLock);
+    rt_free(pool);
+    return rtErrorFromErrno(cond_init_result);
+  }
+  int cond_init_result2 = pthread_cond_init(&pool->taskCond, &condAttr);
+  if (cond_init_result2 != 0) {
+    rtLog_Error("Failed to initialize task condition");
+    pthread_condattr_destroy(&condAttr);
+    pthread_mutex_destroy(&pool->poolLock);
+    rt_free(pool);
+    return rtErrorFromErrno(cond_init_result2);
+  }
+  int cond_init_result3 = pthread_cond_init(&pool->idleCond, &condAttr);
+  if (cond_init_result3 != 0) {
+    rtLog_Error("Failed to initialize idle condition");
+    pthread_cond_destroy(&pool->taskCond);
+    pthread_condattr_destroy(&condAttr);
+    pthread_mutex_destroy(&pool->poolLock);
+    rt_free(pool);
+    return rtErrorFromErrno(cond_init_result3);
+  }
   pthread_condattr_destroy(&condAttr);
   *ppool = pool;
   rtLog_Debug("%s exit", __FUNCTION__);
