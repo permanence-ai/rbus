@@ -33,6 +33,7 @@
 #include "rtMemory.h"
 #include "rtString.h"
 #include "rtrouteBase.h"
+#include "safec_lib.h"
 void rbusMessage_BeginMetaSectionWrite(rbusMessage message);
 void rbusMessage_EndMetaSectionWrite(rbusMessage message);
 void rbusMessage_BeginMetaSectionRead(rbusMessage message);
@@ -192,7 +193,8 @@ int server_object_compare(const void* left, const void* right)
 void server_object_create(server_object_t* obj, char const* name, rbus_callback_t callback, void* data)
 {
     (*obj) = rt_malloc(sizeof(struct _server_object));
-    strcpy((*obj)->name, name);
+    errno_t rc = strcpy_s((*obj)->name, sizeof((*obj)->name), name);
+    ERR_CHK(rc);
     (*obj)->callback = callback;
     (*obj)->data = data;
     (*obj)->process_event_subscriptions = false;
