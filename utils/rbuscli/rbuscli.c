@@ -35,6 +35,7 @@
 #include <rbuscore.h>
 #include <signal.h>
 #include <fcntl.h>
+#include "safec_lib.h"
 #if (__linux__ && __GLIBC__ && !__UCLIBC__) || __APPLE__
   #include <execinfo.h>
 #endif
@@ -2741,10 +2742,12 @@ char *hints(const char *buf, int *color, int *bold) {
     int num = 0;
     char* tokens[4];/*3 or the number of tokens we scan for below*/
     char* hint = NULL;
+    errno_t rc = -1;
 
     len = strlen(buf);
     line = rt_malloc(len + 32);/*32 or just enough room to append a word from below*/
-    strcpy(line, buf);
+    rc = strcpy_s(line, len + 32, buf);
+    ERR_CHK(rc);
   
     tok = strtok_r(cpy, " ", &saveptr);
     while(tok && num < 4)
