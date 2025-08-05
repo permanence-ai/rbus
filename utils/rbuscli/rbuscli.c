@@ -35,6 +35,7 @@
 #include <rbuscore.h>
 #include <signal.h>
 #include <fcntl.h>
+#include "safec_lib.h"
 #if (__linux__ && __GLIBC__ && !__UCLIBC__) || __APPLE__
   #include <execinfo.h>
 #endif
@@ -1958,6 +1959,7 @@ void validate_and_execute_subscribe_cmd (int argc, char *argv[], bool add, bool 
     int duration = 0;
     bool subinterval = false;
     int publishOnSubscribe = 0;
+    errno_t err = -1;
 
     if (argc < 3)
     {
@@ -1985,13 +1987,16 @@ void validate_and_execute_subscribe_cmd (int argc, char *argv[], bool add, bool 
         if (matchCmd(argv[1], 4, "subinterval") || matchCmd(argv[1], 6, "unsubinterval"))
         {
             subinterval = true;
-            strcat(userData, "subint ");
+            err = strcat_s(userData, 256, "subint ");
+            ERR_CHK(err);
         }
         else
         {
-            strcat(userData, "sub ");
+            err = strcat_s(userData, 256, "sub ");
+            ERR_CHK(err);
         }
-        strcat(userData, argv[2]);
+        err = strcat_s(userData, 256, argv[2]);
+        ERR_CHK(err);
     }
     if(argc > 3) /*filter*/
     {
@@ -2003,15 +2008,19 @@ void validate_and_execute_subscribe_cmd (int argc, char *argv[], bool add, bool 
             }
 
             interval = atoi(argv[3]);
-            strcat(userData, " ");
-            strcat(userData, argv[3]);
+            err = strcat_s(userData, 256, " ");
+            ERR_CHK(err);
+            err = strcat_s(userData, 256, argv[3]);
+            ERR_CHK(err);
             if(argv[4] != NULL)
             {
                 if( argc > 5 ) {
                     /*duration*/
                     duration = atoi(argv[4]);
-                    strcat(userData, " ");
-                    strcat(userData, argv[4]);
+                    err = strcat_s(userData, 256, " ");
+                    ERR_CHK(err);
+                    err = strcat_s(userData, 256, argv[4]);
+                    ERR_CHK(err);
 
                     publishOnSubscribe = set_publishOnSubscribe(argc, argv);
                     if(publishOnSubscribe == -1)
@@ -2021,8 +2030,10 @@ void validate_and_execute_subscribe_cmd (int argc, char *argv[], bool add, bool 
                 {
                     if (atoi(argv[4])) {
                         duration = atoi(argv[4]);
-                        strcat(userData, " ");
-                        strcat(userData, argv[4]);
+                        err = strcat_s(userData, 256, " ");
+                        ERR_CHK(err);
+                        err = strcat_s(userData, 256, argv[4]);
+                        ERR_CHK(err);
                     }
                     else
                     {
@@ -2035,10 +2046,14 @@ void validate_and_execute_subscribe_cmd (int argc, char *argv[], bool add, bool 
         }
         else if (((relOp = find_filter(argv)) >= 0) && (argc < 7))
         {
-            strcat(userData, " ");
-            strcat(userData, argv[3]);
-            strcat(userData, " ");
-            strcat(userData, argv[4]);
+            err = strcat_s(userData, 256, " ");
+            ERR_CHK(err);
+            err = strcat_s(userData, 256, argv[3]);
+            ERR_CHK(err);
+            err = strcat_s(userData, 256, " ");
+            ERR_CHK(err);
+            err = strcat_s(userData, 256, argv[4]);
+            ERR_CHK(err);
 
             rbusValue_Init(&filterValue);
 
