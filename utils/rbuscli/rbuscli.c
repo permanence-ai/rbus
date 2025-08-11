@@ -2589,6 +2589,11 @@ int handle_cmds (int argc, char *argv[])
 
 static int construct_input_into_cmds(char* buff, int* pargc, char** argv)
 {
+    if (buff == NULL || pargc == NULL || argv == NULL)
+    {
+        return -1;
+    }
+
     int len = (int)strlen(buff);
     int i, j, quote;
     int argc = 0;
