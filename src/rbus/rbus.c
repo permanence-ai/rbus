@@ -3151,7 +3151,10 @@ rbusError_t rbus_closeDirect(rbusHandle_t handle)
             }
         }
         --sDisConnHandler;
-        ret = rbusCloseDirect_SubRemove(handle, handleInfo->eventSubs, handleInfo->componentName);
+        rbusError_t subRemoveRet = rbusCloseDirect_SubRemove(handle, handleInfo->eventSubs, handleInfo->componentName);
+	    if(subRemoveRet != RBUS_ERROR_SUCCESS)
+	        RBUSLOG_WARN("rbusCloseDirect_subRemove failed");
+
         rbuscore_closePrivateConnection(handleInfo->componentName);
         free(handleInfo->componentName);
         handleInfo->componentName = NULL;
@@ -5897,14 +5900,20 @@ rbusError_t  rbusEvent_PublishRawData(
             rtListItem_GetNext(listItem, &listItem);
         }
         if(subscription->rawData)
+		{
             err = rbuscore_publishDirectSubscriberEvent(subscription->eventName, subscription->listener, eventData->rawData, eventData->rawDataLen, subscription->subscriptionId, subscription->rawData);
-        rc = rbusCoreError_to_rbusError(err);
+            rbusError_t rcTmp = rbusCoreError_to_rbusError(err);
+	        if( rcTmp != RBUS_ERROR_SUCCESS)
+		       RBUSLOG_WARN("rbuscore_publishDirectSubscriberEvent failed");	
+		}
         rtListItem_GetNext(listItem, &listItem);
     }
     HANDLE_SUBS_MUTEX_UNLOCK(handle);
     snprintf(rawDataTopic, RBUS_MAX_NAME_LENGTH, "rawdata.%s", eventData->name);
     err = rbus_sendData(eventData->rawData, eventData->rawDataLen, rawDataTopic);
-    rc = rbusCoreError_to_rbusError(err);
+    rbusError_t rcTmp = rbusCoreError_to_rbusError(err);
+    if( rcTmp != RBUS_ERROR_SUCCESS)
+	    RBUSLOG_WARN("rbus_sendData failed");    
     return rc;
 }
 
