@@ -234,7 +234,8 @@ void rtHashMap_Set(rtHashMap hashmap, const void* key, const void* value)
     }
     if(!node)
     {
-        if((hashmap->size+1) / (float)rtVector_Size(hashmap->buckets) > hashmap->load_factor)
+        size_t bucketSize = rtVector_Size(hashmap->buckets);
+        if(bucketSize != 0 && (hashmap->size+1) / (float)bucketSize > hashmap->load_factor)
         {
             rtHashMap_Resize(hashmap, 1);
             bucket = rtHashMap_GetBucket(hashmap, key);
@@ -295,6 +296,8 @@ uint32_t rtHashMap_Hash_Func_String(rtHashMap hashmap, const void* key)
         hash = hash * 31 + *skey;
         skey++;
     }
+    if(rtVector_Size(hashmap->buckets) == 0)
+        return 0;
     return abs(hash) % rtVector_Size(hashmap->buckets);
 }
 
