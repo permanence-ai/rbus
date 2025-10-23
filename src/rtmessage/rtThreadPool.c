@@ -173,12 +173,26 @@ rtError rtThreadPool_CreateWorkerThread(rtThreadPool pool)
   return RT_OK;
 }
 
+static void rtThreadPool_Cleanup(rtThreadPool pool)
+{
+  if (pool)
+  {
+    rtList_Destroy(pool->threadList, rtThreadPool_CleanupThread);
+    rtList_Destroy(pool->taskList, rtList_Cleanup_Free);
+    pthread_cond_destroy(&pool->idleCond);
+    pthread_cond_destroy(&pool->taskCond);
+    pthread_mutex_destroy(&pool->poolLock);
+    rt_free(pool);
+  }
+}
+
 rtError rtThreadPool_Create(rtThreadPool* ppool, size_t maxThreadCount, size_t stackSize, int expireTime)
 {
   rtLog_Debug("%s enter", __FUNCTION__);
   rtThreadPool pool = rt_try_malloc(sizeof(struct _rtThreadPool));
   if(!pool)
     return rtErrorFromErrno(ENOMEM);
+
   rtList_Create(&pool->threadList);
   rtList_Create(&pool->taskList);
   pool->maxThreadCount = maxThreadCount;
@@ -191,15 +205,51 @@ rtError rtThreadPool_Create(rtThreadPool* ppool, size_t maxThreadCount, size_t s
     pool->expireTime = RT_THREAD_POOL_DEFAULT_EXPIRE_TIME;
   pool->isRunning = 1;
   pool->isShutdown = 0;
+
   pthread_mutexattr_t mutAttr;
-  pthread_mutexattr_init(&mutAttr);
+  int mutex_init_result = pthread_mutexattr_init(&mutAttr);
+  if (mutex_init_result != 0) {
+    rtLog_Error("Failed to initialize mutex attribute");
+    rtThreadPool_Cleanup(pool);
+    return rtErrorFromErrno(mutex_init_result);
+  }
+
   pthread_mutexattr_settype(&mutAttr, PTHREAD_MUTEX_NORMAL);
-  pthread_mutex_init(&pool->poolLock, &mutAttr);
+  int mutex_init_result2 = pthread_mutex_init(&pool->poolLock, &mutAttr);
+  if (mutex_init_result2 != 0) {
+    rtLog_Error("Failed to initialize mutex");
+    pthread_mutexattr_destroy(&mutAttr);
+    rtThreadPool_Cleanup(pool);
+    return rtErrorFromErrno(mutex_init_result2);
+  }
+
   pthread_mutexattr_destroy(&mutAttr);
+
   pthread_condattr_t condAttr;
-  pthread_condattr_init(&condAttr);
-  pthread_cond_init(&pool->taskCond, &condAttr);
-  pthread_cond_init(&pool->idleCond, &condAttr);
+  int cond_init_result = pthread_condattr_init(&condAttr);
+  if (cond_init_result != 0) {
+    rtLog_Error("Failed to initialize condition attribute");
+    rtThreadPool_Cleanup(pool);
+    return rtErrorFromErrno(cond_init_result);
+  }
+
+  int cond_init_result2 = pthread_cond_init(&pool->taskCond, &condAttr);
+  if (cond_init_result2 != 0) {
+    rtLog_Error("Failed to initialize task condition");
+    pthread_condattr_destroy(&condAttr);
+    rtThreadPool_Cleanup(pool);
+    return rtErrorFromErrno(cond_init_result2);
+  }
+
+  int cond_init_result3 = pthread_cond_init(&pool->idleCond, &condAttr);
+  if (cond_init_result3 != 0) {
+    rtLog_Error("Failed to initialize idle condition");
+    pthread_cond_destroy(&pool->taskCond);
+    pthread_condattr_destroy(&condAttr);
+    rtThreadPool_Cleanup(pool);
+    return rtErrorFromErrno(cond_init_result3);
+  }
+
   pthread_condattr_destroy(&condAttr);
   *ppool = pool;
   rtLog_Debug("%s exit", __FUNCTION__);
