@@ -3184,7 +3184,11 @@ rbusError_t rbus_close(rbusHandle_t handle)
     LockMutex();
     char filename[RTMSG_HEADER_MAX_TOPIC_LENGTH];
     snprintf(filename, RTMSG_HEADER_MAX_TOPIC_LENGTH-1, "%s%d_%d", "/tmp/.rbus/", getpid(), handleInfo->componentId);
-    remove(filename);
+    int remove_ret = remove(filename);
+    if(remove_ret != 0)
+    {
+        RBUSLOG_ERROR("Failed to remove file %s, error code %d", filename, remove_ret);
+    }
 
     HANDLE_EVENTSUBS_MUTEX_LOCK(handle);
     if(handleInfo->eventSubs)
