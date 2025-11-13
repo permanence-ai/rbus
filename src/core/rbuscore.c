@@ -106,7 +106,8 @@ const rtPrivateClientInfo* _rbuscore_find_server_privateconnection(const char *p
 void server_method_create(server_method_t* meth, char const* name, rbus_callback_t callback, void* data)
 {
     (*meth) = rt_malloc(sizeof(struct _server_method));
-    strcpy((*meth)->name, name);
+    strncpy((*meth)->name, name, sizeof((*meth)->name) - 1);
+    (*meth)->name[sizeof((*meth)->name) - 1] = '\0'; 
     (*meth)->callback = callback;
     (*meth)->data = data;
 }
