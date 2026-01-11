@@ -661,16 +661,16 @@ void rbusPropertyList_initFromMessage(rbusProperty_t* prop, rbusMessage msg)
 #endif
     while(--numProps >= 0)
     {
-        rbusProperty_t prop;
-        rbusProperty_initFromMessage(&prop, msg);
+        rbusProperty_t current;
+        rbusProperty_initFromMessage(&current, msg);
         if(first == NULL)
-            first = prop;
+            first = current;
         if(previous != NULL)
         {
-            rbusProperty_SetNext(previous, prop);
-            rbusProperty_Release(prop);
+            rbusProperty_SetNext(previous, current);
+            rbusProperty_Release(current);
         }
-        previous = prop;
+        previous = current;
     }
     /*TODO we need to release the props we inited*/
     *prop = first;
