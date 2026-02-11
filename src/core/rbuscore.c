@@ -576,7 +576,8 @@ static void configure_router_address()
                     if(idx2-idx1 > 0)
                     {
                         buff[idx2] = 0;
-                        strcpy(g_daemon_address, &buff[idx1]);
+                        strncpy(g_daemon_address, &buff[idx1], sizeof(g_daemon_address) - 1);
+                        g_daemon_address[sizeof(g_daemon_address) - 1] = '\0';
                         break;
                     }
                 }
